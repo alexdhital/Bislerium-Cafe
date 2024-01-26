@@ -1,0 +1,115 @@
+﻿@page "/"
+@inject NavigationManager NavManager
+<style>
+
+    .login-form {
+        text-align: center;
+        background-color: #D63484;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        margin: 50px auto;
+        color: #F8F4EC; /* Text color */
+    }
+
+    h1 {
+        color: #FF9BD2; /* Heading color */
+    }
+
+    p {
+        font-size: 18px;
+        color: #FF9BD2; /* Paragraph color */
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        color: #FF9BD2; /* Label color */
+    }
+
+    input {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 1px solid #B4D4FF;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        background-color: #F8F4EC; /* Input background color */
+        color: #402B3A; /* Input text color */
+    }
+
+    button {
+        background-color: #176B87;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .error-message {
+        color: #FF9BD2; /* Error message color */
+        margin-top: 20px;
+    }
+
+</style>
+
+<div class="login-form card px-5 py-5">
+    <h1>Hello, world!</h1>
+    <p>Welcome to this Coffee Shop</p>
+
+    <div style="margin-top: 20px; text-align: left; width: 300px; margin-left: auto; margin-right: auto;">
+        <label for="username">Username:</label>
+        <input type="text" id="username" @bind="username" class="form-control" />
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" @bind="password" class="form-control" />
+
+        <button @onclick="SignIn">Sign In</button>
+    </div>
+
+    @if (showError)
+    {
+        <p class="error-message">Invalid credentials. Please try again.</p>
+    }
+</div>
+
+@code {
+    private string username;
+    private string password;
+    private bool showError = false;
+
+    private async Task SignIn()
+    {
+        if (username == "admin")
+        {
+            UserRole.role = "admin";
+            try
+            {
+                NavManager.NavigateTo("/WelcomePage");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Navigating: {ex.Message}");
+            }
+        }
+        else if (username == "staff")
+        {
+            UserRole.role = "staff";
+            try
+            {
+                NavManager.NavigateTo("/WelcomePage");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error Navigating: {ex.Message}");
+            }
+        }
+        else
+        {
+            showError = true;
+            await JSRuntime.InvokeVoidAsync("console.log", "Invalid login attempt. Username: " + username);
+        }
+    }
+}

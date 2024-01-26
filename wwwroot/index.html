@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Bislerium_cafe</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="Bislerium_cafe.styles.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Audiowide">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;1,100;1,200;1,300&display=swap" rel="stylesheet">
+    <style>
+        font-family: 'Poppins', sans-serif;
+    </style>
+</head>
+
+<body>
+
+    <div class="status-bar-safe-area"></div>
+
+    <div id="app">Loading...</div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+
+    <script src="_framework/blazor.webview.js" autostart="false"></script>
+    <script src="_content/Microsoft.AspNetCore.Components.Web.Extensions/script.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.0.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="_content/Microsoft.AspNetCore.Components.Web.Extensions/script.js"></script>
+
+    <script>
+        // JavaScript code defining a window.multiselect object.
+        // This object contains a method getSelectedValues to retrieve selected values from a multi-select dropdown.
+        window.multiselect = {
+            // getSelectedValues method takes an 'id' parameter representing the id of the multi-select dropdown.
+            getSelectedValues: (id) => {
+                // Retrieve the select element using the provided 'id'.
+                var select = document.getElementById(id);
+                // Use Array.from to convert the HTMLCollection of options to an array.
+                // Filter the array to include only selected options.
+                var selectedOptions = Array.from(select.options)
+                    .filter(option => option.selected)
+                    // Map the array to extract the values of selected options.
+                    .map(option => option.value);
+                // Return an array of selected option values.
+                return selectedOptions;
+            }
+        };
+
+        window.select = {
+            getSelectedValues: (id) => {
+                const select = document.getElementById(id);
+                return select.value;
+            }
+        };
+    </script>
+    <script>
+        function showConfirmationModal() {
+            $('#confirmationModal').modal('show');
+        }
+
+        function hideConfirmationModal() {
+            $('#confirmationModal').modal('hide');
+        }
+    </script>
+
+</body>
+
+</html>

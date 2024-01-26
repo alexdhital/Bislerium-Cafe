@@ -1,0 +1,45 @@
+﻿@using Data;
+@using Bislerium_cafe.Pages
+@inject NavigationManager NavManager
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Bislerium_cafe</a>
+        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+    </div>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}
+
+@if (showError)
+{
+    <p style="color: red;">Invalid credentials. Please try again.</p>
+}
+
+@code {
+    private string username;
+    private string password;
+    private bool showError = false;
+
+   
+
+
+  
+}
+
+

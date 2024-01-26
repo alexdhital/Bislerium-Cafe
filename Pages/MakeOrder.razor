@@ -1,0 +1,174 @@
+﻿@page "/MakeOrder";
+@inject NavigationManager NavigationManager
+
+<style>
+    .make-order-main {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0 20px 0;
+    }
+
+    .make-order {
+        width: 50%;
+        padding: 30px 50px 30px 50px;
+        background-color: #F8F4EC;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .heading-order {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+        .heading-order h1 {
+            color: #176B87;
+            font-size: 28px;
+            margin-right: 10px;
+        }
+
+        .heading-order p {
+            font-size: 18px;
+            color: #86B6F6;
+        }
+</style>
+<div class="heading-order" style="background-color: #F8F4EC; color: #402B3A;">
+    <h1>Place Your Coffee Order!</h1>
+    <p>Good luck with your selection!</p>
+</div>
+
+<div class="make-order-main" style="background-color: #FF9BD2;">
+    <div class="make-order card" style="background-color: #D63484; color: #F8F4EC;">
+        <!-- EditForm component of Blazor for handling form submission and validation -->
+        <EditForm Model="@form" OnValidSubmit="@HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div style="margin-bottom: 15px;">
+                <label for="Coffee" style="color: #176B87;">Select Coffee:</label>
+                <select id="Coffee" class="form-control" @onchange="OnCoffeeChange">
+                    @foreach (var coffeeItem in coffee)
+                    {
+                        <option value="@coffeeItem.Id">@coffeeItem.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="Price" style="color: #176B87;">Coffee Price:</label>
+                <InputText id="Price" class="form-control" @bind-Value="selectedCoffee.Price" readonly />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="Quantity" style="color: #176B87;">Quantity:</label>
+                <InputText id="Quantity" class="form-control" @bind-Value="form.Quantity" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="Phonenumber" style="color: #176B87;">Phonenumber:</label>
+                <InputText id="Phonenumber" class="form-control" @bind-Value="form.Phonenumber" />
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="Addins" style="color: #176B87;">Select Addins:</label>
+                <select id="Addins" class="form-control" multiple>
+                    @foreach (var addin in addins)
+                    {
+                        <option value="@addin.Id">@addin.Name</option>
+                    }
+                </select>
+            </div>
+
+            <br />
+
+            <button type="submit" class="button-5" style="background-color: #176B87; color: #F8F4EC;">Place Order</button>
+        </EditForm>
+    </div>
+</div>
+
+
+@code {
+    Coffee selectedCoffee = new Coffee();
+
+    private void OnCoffeeChange(ChangeEventArgs e)
+    {
+        var selectedCoffeeId = e.Value.ToString();
+        if (!string.IsNullOrEmpty(selectedCoffeeId))
+        {
+            selectedCoffee = coffee.FirstOrDefault(coffeeItem => coffeeItem.Id == Guid.Parse(selectedCoffeeId));
+        }
+        else
+        {
+            selectedCoffee = null;
+        }
+    }
+
+    // List to store available addins
+    public List<Addins> addins = new List<Addins>();
+    public List<Coffee> coffee = new List<Coffee>();
+
+    // Form object to store form data
+    OrderModel form = new OrderModel();
+
+    protected override void OnInitialized()
+    {
+        // Retrieve the list of available addins
+        addins = AddinService.RetrieveAddinsData();
+        coffee = CoffeeService.RetrieveCoffeeData();
+        base.OnInitialized();
+    }
+
+    public async void HandleSubmit()
+    {
+        try
+        {
+
+            DateTime date = DateTime.Now;
+
+            // Use JavaScript interop to get the selected addins from the multiselect JavaScript function
+            var selectedAddins = await JSRuntime.InvokeAsync<List<string>>("multiselect.getSelectedValues", "Addins");
+
+            // Map selected addin Ids to Addin objects and assign them to the form's addins property
+            List<Addins> modelAddins = selectedAddins.Select(id =>
+                new Addins
+                    {
+                        Id = Guid.Parse(id),
+                        Name = addins.FirstOrDefault(h => h.Id == Guid.Parse(id))?.Name,
+                        Price = addins.FirstOrDefault(h => h.Id == Guid.Parse(id))?.Price
+                    }).ToList();
+            int total = 0;
+            foreach (Addins a in modelAddins)
+            {
+                total += int.Parse(a.Price);
+            }
+            total += (int.Parse(selectedCoffee.Price) * int.Parse(form.Quantity));
+
+            form.IsPaid = false;
+            form.Addins = modelAddins;
+            form.Coffee = selectedCoffee;
+            form.OrderDate = date;
+            form.TotalPrice = ""+total;
+
+            // Save form data to JSON file
+            OrderServices.SaveFormDataInJson(form);
+
+            // Reset the form object
+            form = new OrderModel();
+
+            // Navigate to the PaymentService page
+            NavigationManager.NavigateTo("/PaymentService");
+
+            // Display a success alert
+            await App.Current.MainPage.DisplayAlert("Order Placed", "Your coffee order has been placed successfully!", "OK");
+        }catch(Exception e)
+        {
+            
+        }
+    }
+}

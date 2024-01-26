@@ -1,0 +1,320 @@
+﻿@inherits LayoutComponentBase
+@using Data
+@using Pages
+<style>
+    body {
+        background-color: #F8F4EC;
+        margin: 0;
+        padding: 0;
+        font-family: 'Your Chosen Font', sans-serif; /* Specify your preferred font */
+    }
+
+    .main-div {
+        background: #FF9BD2;
+        margin: auto;
+    }
+
+    .navigation-bar {
+        position: absolute !important;
+        width: 100vw !important;
+        top: 0 !important;
+        padding: 20px 5px 20px 5px !important;
+        height: 100px !important;
+        background-color: #402B3A !important;
+    }
+
+
+    .nav-items-staff {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 20px !important;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 5px 20px 5px !important;
+        height: 200px !important;
+    }
+
+    .form-search {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .member-registration-form {
+        display: block;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .register-form {
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 50px !important;
+    }
+
+    .nav-link {
+        font-size: 15px;
+        color: #F8F4EC;
+        font-weight: bold !important;
+    }
+
+    @if(UserRole.role == "") {
+        <style>
+            .content {
+                margin-top: 30px !important;
+            }
+
+            .addmember_button {
+                display: none;
+            }
+        </style>
+    }
+    else {
+        <style>
+            .content {
+                margin-top: 50px !important;
+            }
+        </style>
+    }
+
+    @if (UserRole.role == "staff") {
+        <style>
+            .addmember_button {
+                display: none;
+            }
+        </style>
+    }
+
+    @if (UserRole.role == "admin") {
+        <style>
+            .addmember_button {
+                display: block;
+                position: absolute;
+                top: 80vh;
+                right: 20px;
+                z-index: 100;
+            }
+
+            .addmember_button button {
+                width: 80px;
+                height: 50px;
+                border-radius: 20px;
+                background-color: #176B87;
+                color: #F8F4EC;
+            }
+
+            .addmember_button:hover::after {
+                content: "Add New Member";
+                position: absolute;
+                top: -20px;
+                left: 0%;
+                transform: translateX(-50%);
+                background-color: #fff;
+                padding: 5px;
+                border-radius: 5px;
+                box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+                z-index: 101;
+                white-space: nowrap;
+            }
+        </style>
+    }
+
+    /* CSS */
+    .button-5 {
+        align-items: center;
+        background-clip: padding-box;
+        background-color: #fa6400;
+        border: 1px solid transparent;
+        border-radius: .25rem;
+        box-shadow: rgba(0, 0, 0, 0.02) 0 1px 3px 0;
+        box-sizing: border-box;
+        color: #fff;
+        cursor: pointer;
+        display: inline-flex;
+        font-family: system-ui, -apple-system, system-ui, "Helvetica Neue", Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        justify-content: center;
+        line-height: 1.25;
+        margin: 0;
+        min-height: 3rem;
+        padding: calc(.875rem - 1px) calc(1.5rem - 1px);
+        position: relative;
+        text-decoration: none;
+        transition: all 250ms;
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+        vertical-align: baseline;
+        width: auto;
+    }
+
+    .button-5:hover,
+    .button-5:focus {
+        background-color: #fb8332;
+        box-shadow: rgba(0, 0, 0, 0.1) 0 4px 12px;
+    }
+
+    .button-5:hover {
+        transform: translateY(-1px);
+    }
+
+    .button-5:active {
+        background-color: #c85000;
+        box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
+        transform: translateY(0);
+    }
+
+    .nav-link:hover {
+        text-decoration: none !important;
+        color: red !important;
+    }
+
+    .nav-link:focus {
+        text-decoration: none !important;
+        color: red !important;
+    }
+</style>
+
+<div class="page">
+    <main class="main-div">
+        @if (UserRole.role == "")
+        {
+        }
+        else
+        {
+            <div>Hello Nepal</div>
+            <div class="navigation-bar top-row px-3 flex align-items-center justify-content-around" style="font-family: 'Poppins', sans-serif;">
+                <div class="nav-items-staff">
+                    @code{
+                        public void LoginOut(){
+                            UserRole.role = "";
+                        }
+                    }
+
+                    @if (UserRole.role == "admin")
+                    {
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="MakeOrder" Match="NavLinkMatch.All">
+                                <span class="oi oi-plus " aria-hidden="true"></span><span style="margin-left: 8px;">Make Order</span>
+                            </NavLink>
+                            <NavLink class="nav-link" href="PaymentService" Match="NavLinkMatch.All">
+                                <span class="oi oi-british-pound" aria-hidden="true"></span><span style="margin-left: 8px;">Payment Service</span>
+                            </NavLink>
+                        </div>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="ViewPaidOrder" Match="NavLinkMatch.All">
+                                <span class="oi oi-home" aria-hidden="true"></span>
+                                <span style="margin-left: 8px;">View Paid Order</span>
+                            </NavLink>
+                            <NavLink class="nav-link" href="ViewAddins" Match="NavLinkMatch.All">
+                                <span class="oi oi-dashboard" aria-hidden="true"></span><span style="margin-left: 8px;">View Addins</span>
+                            </NavLink>
+                        </div>
+                        <div>
+                            <NavLink class="nav-link" href="ViewCoffee" Match="NavLinkMatch.All">
+                                <span class="oi oi-fire" aria-hidden="true"></span><span style="margin-left: 8px;"> View Coffee</span>
+                            </NavLink>
+                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" onclick="@LoginOut">
+                                <span class="oi oi-account-login" aria-hidden="true"></span><span style="margin-left: 8px;"> Login/Logout</span>
+                            </NavLink>
+                        </div>
+                    }
+                    @if (UserRole.role == "staff")
+                    {
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All" onclick="@LoginOut">
+                                <span class="oi oi-home" aria-hidden="true"></span><span style="margin-left: 8px;"> Login/Logout</span>
+                            </NavLink>
+                        </div>
+                        <div class="">
+                            <NavLink class="nav-link" href="MakeOrder" Match="NavLinkMatch.All">
+                                <span class="oi oi-plus" aria-hidden="true"></span> <span style="margin-left: 8px;">Order</span>
+                            </NavLink>
+                        </div>
+                        <div class="">
+                            <NavLink class="nav-link" href="PaymentService" Match="NavLinkMatch.All">
+                                <span class="oi oi-home" aria-hidden="true"></span><span style="margin-left: 8px;"> Payment Service</span>
+                            </NavLink>
+                        </div>
+                        <div class="nav-item px-3">
+                            <NavLink class="nav-link" href="ViewPaidOrder" Match="NavLinkMatch.All">
+                                <span class="oi oi-home" aria-hidden="true"></span>
+                                <span style="margin-left: 8px;">View Paid Order</span>
+                            </NavLink>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        <article class="content px-4 pt-5" style="font-family: 'Poppins', sans-serif;">
+            @Body
+            <div class="addmember_button position-fixed">
+                <button class="button-5" style="background-color: #176B87; color: white;" onclick="@HandleAddButton">Add</button>
+            </div>
+            @if(@boolShowForm)
+            {
+                <div class="container-fluid align-items-center justify-content-center">
+                    <div class="member-registration-form card p-3">
+                        <div>
+                            <h3 class="text-blue">Enter a Member Details</h3>
+                            <EditForm Model="@modeldata" OnValidSubmit="@HandleSubmit">
+                                <div class="form-group">
+                                    <label for="Phonenumber">Phonenumber:</label>
+                                    <InputText  type="number" id="Phonenumber"  class="form-control" @bind-Value="modeldata.Phonenumber"  />
+                                </div>
+                                <div class="pt-3">
+                                    <button type="submit" class="btn btn-primary" style="background-color: #176B87;">Save</button>
+                                    <button type="reset" @onclick="@(()=>boolShowForm=false)"  class="btn btn-primary" style="background-color: #176B87;">Cancel</button>
+                                </div>
+                            </EditForm>
+                        </div>
+                    </div>
+                </div>
+            }
+        </article>
+    </main>
+</div>
+
+@code{
+    MemberModel modeldata = new MemberModel();
+    private bool boolShowForm=false;
+
+    private string searchname;
+    public void FormSubmit(){
+        string value = searchname;
+    }
+
+    public void LogOutorLogin(){
+
+    }
+
+    public void HandleAddButton(){
+        if (boolShowForm == false)
+        {
+            boolShowForm = true;
+        }
+    }
+
+    public void HandleSubmit()
+    {
+        if (modeldata.Phonenumber == null)
+        {
+            App.Current.MainPage.DisplayAlert("Error","Phone number is empty", "OK");
+            return;
+        }
+        else
+        {
+            if((modeldata.Phonenumber).Length < 5 || modeldata.Phonenumber.ToString().Length > 10)
+            {
+                App.Current.MainPage.DisplayAlert("Error","Phone number length must be 5 to 10", "OK");
+                return;
+            }
+        }
+        modeldata.Phonenumber = modeldata.Phonenumber;
+        MemberServices.SaveFormDataInJson(modeldata);
+    }
+}

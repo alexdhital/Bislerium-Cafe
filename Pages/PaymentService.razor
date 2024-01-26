@@ -1,0 +1,234 @@
+@page "/PaymentService"
+@inject IJSRuntime JsRuntime
+<style>
+
+    /* Table Styles */
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+        .table th, .table td {
+            border: 1px solid #D63484;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .table th {
+            background-color: #FF9BD2;
+            color: #402B3A;
+        }
+
+        .table tr:hover {
+            background-color: #F8F4EC;
+        }
+
+    /* Modal Styles */
+    .modal {
+        color: red;
+    }
+
+    .modal-content {
+        background: #402B3A;
+        color: #F8F4EC;
+    }
+
+    .modal-header {
+        background-color: #D63484;
+        color: #F8F4EC;
+    }
+
+    .modal-footer {
+        background-color: #D63484;
+        color: #F8F4EC;
+    }
+</style>
+@inject IJSRuntime JSRuntime
+@inject IJSRuntime JSRuntime
+
+<div class="container mt-4 pb-5" style="margin-top: 4rem; padding-bottom: 5rem;">
+    <h2 style="font-size: 2rem; margin-bottom: 1rem;">View Order</h2>
+    <div class="row">
+        @foreach (var order in @orderModel)
+        {
+            @if (!order.IsPaid)
+            {
+                <div class="col-xl-4 col-lg-4 col-md-6 col-sm-12 mt-3">
+                    <div class="card position-relative" style="border: 1px solid #D63484; border-radius: 10px; padding: 15px; margin-top: 1.5rem; transition: background 0.3s;" onmouseover="this.style.background='#F8F4EC'" onmouseout="this.style.background=''">
+                        <button type="button" class="btn-close position-absolute top-0 end-0 mt-2 me-2" aria-label="Close" @onclick="()=>showPopUpConfirm(order.Id)" style="background-color: #D63484; color: #F8F4EC; border: none; border-radius: 50%; padding: 0.5rem; position: absolute; top: 0; right: 0; margin-top: 0.2rem; margin-right: 0.2rem; cursor: pointer;" onmouseover="this.style.backgroundColor='#FF9BD2'" onmouseout="this.style.backgroundColor=''"></button>
+                        <div class="card-body">
+                            <h5 class="card-title" style="font-size: 1.5rem; margin-bottom: 1rem;">@order.Coffee.Name</h5>
+                            <div class="mt-3">
+                                <label for="quantity">Quantity</label>
+                                <input type="number" id="quantity" class="form-control" value="@order.Quantity" max="99" min="1" @oninput="(e) => change(e, order)" style="padding: 10px; margin-bottom: 15px; border: 1px solid #D63484; border-radius: 5px;">
+                            </div>
+                            <div class="mt-3">
+                                <label for="quantity">Phone_Number</label>
+                                <input type="text" id="quantity" class="form-control" readonly value="@order.Phonenumber" max="99" min="1" @oninput="(e) => change(e, order)" style="padding: 10px; margin-bottom: 15px; border: 1px solid #D63484; border-radius: 5px;">
+                            </div>
+                            <p class="card-text mt-2" style="font-weight: bold;">Date: @order.OrderDate</p>
+
+                            <p class="card-text mt-2" style="font-weight: bold;">Price: @order.TotalPrice</p>
+                            <strong class="mt-1">Addins:</strong>
+                            <div class="addins card-text mt-1">
+                                @if (order.Addins != null && order.Addins.Any())
+                                {
+                                    <ul class="addins-list">
+                                        @foreach (var addin in order.Addins)
+                                        {
+                                            <li>@addin.Name</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <span>No Addins</span>
+                                }
+                            </div>
+                            <button type="submit" @onclick="@(()=>MakePaidOrder(order.Id))" class="btn btn-primary btn-pay mt-3 me-2 w-100 m-auto" style="margin-top: 10px; width: 100%;">Pay</button>
+                            @if (showEditOption.ContainsKey(order.Id) && showEditOption[order.Id])
+                            {
+                                <button type="submit" @onclick="@(()=>OrderServices.EditQuantity(order.Id, updatedQuantity))" class="btn btn-primary btn-pay mt-3" style="width: 100%;">Save</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+
+    @if (showPopUpConfirmBool)
+    {
+        <div class="modal d-block" id="confirmationModal" role="dialog" style="color:red;">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Confirmation</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close" @onclick="()=>showPopUpConfirm(null)">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure you want to close this order?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal" @onclick="()=>showPopUpConfirm(null)">
+                            No
+                        </button>
+                        <button type="button" class="btn btn-primary" @onclick="()=>CloseOrder()">Yes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+
+
+
+<!-- Modal -->
+<!-- Modal -->
+
+@code {
+
+
+    <!-- for popup-->
+    private bool showPopUpConfirmBool=false;
+    Guid? delete_guid;
+    [Inject]
+    private NavigationManager NManager { get; set; }
+
+    public void showPopUpConfirm(Guid? id)
+    {
+        if(id != null)
+        {
+            delete_guid = id;
+
+        }
+        if (@showPopUpConfirmBool)
+        {
+            showPopUpConfirmBool = false;
+
+        }
+        else
+        {
+            showPopUpConfirmBool = true;
+
+        }    
+    }
+   
+    public void CloseOrder()
+    {
+        Guid?a=(this.delete_guid);
+        showPopUpConfirm(null);
+        bool value= OrderServices.DeleteOrderModel(a);
+        NManager.NavigateTo("/PaymentService");
+
+        if (value == true)
+        {
+
+        }
+    }
+
+    List<OrderModel> orderModel = new List<OrderModel>();
+    protected override void OnInitialized()
+    {
+        // Retrieve the list of available addins
+        orderModel = OrderServices.RetrieveOrderData();
+        //coffee = CoffeeService.RetrieveCoffeeData();
+        base.OnInitialized();
+    }
+    private Dictionary<Guid, bool> showEditOption = new Dictionary<Guid, bool>();
+    private string updatedQuantity = "";
+
+    public void change(ChangeEventArgs e, OrderModel order)
+    {
+        if (!showEditOption.ContainsKey(order.Id))
+        {
+            showEditOption.Add(order.Id, true);
+        }
+        else
+        {
+            showEditOption[order.Id] = true;
+        }
+
+        // Parse the value from the input
+        if (int.TryParse(e.Value.ToString(), out int quantity))
+        {
+            updatedQuantity = quantity.ToString();
+        }
+    }
+    public void ChangeQuantity(Guid id)
+    {
+        
+    }
+
+    // Inject NavigationManager for navigation purposes
+   // [Inject]
+   // private NavigationManager NManager { get; set; }
+
+    // Initialize the page on start
+    public Action onOk;
+
+
+    // Method to navigate to the EditHobby page with a specific hobby Id
+    public void MakePaidOrder(Guid id)
+    {
+        
+        try
+        {
+            // Navigate to the EditHobby page with the specific hobby ID
+           NManager.NavigateTo($"/MakePaid/{id}");
+        }
+        catch (Exception ex)
+        {
+            // Handle any navigation errors
+            Console.WriteLine($"Error Navigating:{ex.Message}");
+        }
+    }
+    private Guid orderId;
+
+    
+}

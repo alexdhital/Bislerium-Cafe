@@ -1,0 +1,86 @@
+﻿@page "/EditCoffee/{Id:guid}"
+<!-- Inject the NavigationManager Service for page navigation -->
+@inject NavigationManager NavManager
+
+<style>
+    .edit-coffee-main {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0;
+        background-color: #F8F4EC;
+        min-height: 100vh;
+    }
+
+    .edit-coffee-form {
+        background: white;
+        width: 30%;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .py-4 {
+        padding-top: 20px;
+    }
+
+    .btn-primary {
+        background-color: #D63484;
+        color: #F8F4EC;
+    }
+</style>
+
+<div class="edit-coffee-main">
+    <div class="edit-coffee-form">
+        <EditForm Model="@coffee" OnValidSubmit="@HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="Name">Coffee Name:</label>
+                <InputText id="Name" class="form-control" @bind-Value="coffee.Name" />
+            </div>
+
+            <div class="form-group">
+                <label for="Price">Coffee Price:</label>
+                <InputText id="Price" class="form-control" @bind-Value="coffee.Price" />
+            </div>
+
+            <div class="py-4">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    public Coffee coffee;
+
+    protected override void OnInitialized()
+    {
+        coffee = CoffeeService.GetcoffeeById(Id);
+        base.OnInitialized();
+    }
+
+    public void HandleSubmit()
+    {
+        try
+        {
+            CoffeeService.EditCoffee(Id, coffee.Price);
+            App.Current.MainPage.DisplayAlert("Success", "Data Successfully Edited", "Ok");
+            NavManager.NavigateTo("/Coffee");
+        }
+        catch (Exception ex)
+        {
+            App.Current.MainPage.DisplayAlert("Error", $"Error Editing Coffee: {ex.Message}", "Ok");
+        }
+    }
+}

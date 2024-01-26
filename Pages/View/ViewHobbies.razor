@@ -1,0 +1,82 @@
+﻿@page "/ViewAddins"
+
+<style>
+
+    .addins {
+        height: 50px;
+        overflow-y: scroll;
+        background: rgb(247, 245, 240);
+        padding: 5px;
+    }
+
+    .addins-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .addins-list li {
+            margin-bottom: 5px;
+        }
+
+    .btn-pay {
+        margin-top: 10px;
+    }
+</style>
+
+
+<div class="container mt-4" style="background-color: #F8F4EC;">
+    <h2 class="px-2" style="color: #402B3A;">View Addin Details</h2>
+    <table class="table" style="width: 100%;">
+        <thead>
+            <tr>
+                <th style="background-color: #FF9BD2; color: #402B3A;">Addin Name</th>
+                <th style="background-color: #FF9BD2; color: #402B3A;">Price</th>
+                <th style="background-color: #FF9BD2; color: #402B3A;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var addin in AddinService.RetrieveAddinsData())
+            {
+                <tr>
+                    <td>@addin.Name</td>
+                    <td>@addin.Price</td>
+                    <td>
+                        <button type="submit" @onclick="@(()=>EditAddin(addin.Id))" class="btn btn-primary btn-pay p-2" style="background-color: #D63484; color: #F8F4EC; border: none; border-radius: 5px; cursor: pointer;">Edit</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+
+
+@code {
+    // Inject NavigationManager for navigation purposes
+    [Inject]
+    private NavigationManager NManager { get; set; }
+
+    // Initialize the page on start
+    protected override void OnInitialized()
+    {
+        // Inject sample hobby data to ensure some data exists
+        AddinService.InjectSampleAddinsData();
+        base.OnInitialized();
+    }
+
+    // Method to navigate to the EditHobby page with a specific hobby Id
+    public void EditAddin(Guid id)
+    {
+        try
+        {
+            // Navigate to the EditHobby page with the specific hobby ID
+            NManager.NavigateTo($"/EditAddins/{id}");
+        }
+        catch (Exception ex)
+        {
+            // Handle any navigation errors
+            Console.WriteLine($"Error Navigating:{ex.Message}");
+        }
+    }
+}

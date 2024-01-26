@@ -1,0 +1,62 @@
+﻿<Router AppAssembly="@typeof(Main).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">
+                <div>
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <h1 style="color: #2e5a4d;">Welcome to Bislerium Café POS System</h1>
+                        <p style="color: #555;">Access Securely with Password Protection</p>
+                         <style>
+       
+
+        header {
+            color: #FF9BD2;
+            padding: 20px;
+            width: 100%;
+        }
+
+
+
+        h1 {
+            color: #176B87;
+        }
+
+        p {
+            font-size: 18px;
+                                color: #FF9BD2;
+        }
+
+                           
+
+        button {
+            background-color: #176B87;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+
+    <header>
+        <h1>Welcome to Our cafe</h1>
+    </header>
+    <main>
+        <p>Indulge in the Aroma of Perfection</p>
+        <p>At our cozy corner, we strive to create an atmosphere where coffee isn't just a beverage; it's an experience.</p>
+        <p>Explore our diverse range of blends and enjoy the rich tapestry of coffee flavors. Relax in our comfortable seating and embrace the sense of community that makes our coffee shop a home away from home.</p>
+        <button>Explore Our Brews</button>
+    </main>
+
+                    </div>
+
+                </div>
+            </p>
+        </LayoutView>
+    </NotFound>
+</Router>

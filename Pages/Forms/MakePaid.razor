@@ -1,0 +1,188 @@
+﻿<!-- Razor page for editing a hobby with a specified Id -->
+@page "/MakePaid/{Id:guid}"
+<!-- Inject the NavigationManager Service for page navigation -->
+@inject NavigationManager NavManager
+<style>
+
+    .make-order-main {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0 20px 0;
+    }
+
+    .make-order {
+        width: 50%;
+        padding: 30px 50px 30px 50px;
+    }
+</style>
+<div class="make-order-main"> 
+<!-- EditForm component of Blazor for handling form submission and validation -->
+<div class="make-order card">
+<!-- EditForm component of blazor for handling form submission and validation -->
+<EditForm Model="@orderdata" OnValidSubmit="@HandleSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div class="form-group">
+        <label for="Name">Name:</label>
+        <InputText id="Name" class="form-control" style="background-color: #86B6F6; color: white;" @bind-Value="orderdata.Coffee.Name" />
+        <br>
+
+        <label for="Totalprice">Totalprice:</label>
+        <InputText id="Totalprice" class="form-control" style="background-color: #B4D4FF; color: #176B87;" @bind-Value="orderdata.TotalPrice" />
+        <br>
+        <label for="Discount Amount">Discount Amount:</label>
+        <InputText id="Discountamt" class="form-control" style="background-color: #B4D4FF; color: #176B87;" @bind-Value="@Discount"/>
+        <br>
+        <label for="Username">User Name:</label>
+        <InputText id="Username" class="form-control" style="background-color: #B4D4FF; color: #176B87;" @bind-Value="orderdata.Username" />
+        <br>
+
+        <label for="Phonenumber">Phonenumber:</label>
+        <InputText id="Phonenumber" class="form-control" style="background-color: #86B6F6; color: white;" @bind-Value="orderdata.Phonenumber" />
+    </div>
+
+    <!-- Submit button for saving changes -->
+    <button type="submit" class="btn btn-primary" style="background-color: #176B87;">Save</button>
+</EditForm>
+</div>
+</div>
+
+@code {
+
+
+    public List<OrderModel> ReturnModel()
+    {
+        var orderModel = OrderServices.RetrieveOrderData();
+        return orderModel;
+    }
+
+    public OrderModel ReturnOneModel(Guid Id)
+    {
+        var orderModel = OrderServices.GetOrderDataById(Id);
+        return orderModel;
+    }
+
+
+
+
+    [Parameter] // Parameter to capture the hobby Id from the route above /EditHobby/{Id:guid}
+    public Guid Id { get; set; }
+
+    // Hobby object to store and edit hobby information
+    public OrderModel orderdata;
+    public List<MemberModel> membershipdata;
+    public string Discount="0";
+    public string Amountafterdiscount;
+    // Initialization method runs when the component i.e. EditHobby.razor is initialized
+    protected override void OnInitialized()
+    {
+        orderdata = OrderServices.GetOrderDataById(Id); // Retrieve the hobby information based on the specified Id, Calling the Method from HobbyServices class in Services Folder
+        membershipdata = MemberServices.RetrieveMemberData();
+
+        foreach(var member in membershipdata)
+        {
+            if(member.Phonenumber== orderdata.Phonenumber)
+            {
+                int totalprice = int.Parse(orderdata.TotalPrice);
+                Discount = (totalprice * 10 / 100).ToString();
+                orderdata.Discount = Discount;
+                orderdata.FinalPrice = (totalprice - int.Parse(Discount)).ToString();
+
+                App.Current.MainPage.DisplayAlert("Success", "DiscountSucceessMessage", "OK");
+
+            }
+        }
+
+
+        base.OnInitialized();
+    }
+
+
+    // HandleSubmit method is called on form submission
+    public void HandleSubmit()
+    {
+
+        OrderModel orderOneModel = ReturnOneModel(Id);
+        String phonenumber = orderOneModel.Phonenumber;
+        String username = orderOneModel.Phonenumber;
+
+
+
+        int finalPrice = 0;
+        int discount_price = int.Parse(Discount);
+        orderOneModel.Discount = ""+discount_price;
+        Console.WriteLine(discount_price);
+        int total_price = int.Parse(orderOneModel.TotalPrice == null ? "0": orderOneModel.TotalPrice);
+        bool IsFree = false;
+
+
+        finalPrice = total_price - discount_price;
+
+        Customer customer = new Customer();
+        customer.Phonenumber = orderdata.Phonenumber;
+        List<Customer> arrCustomer = CustomerServices.RetrieveCustomerData();
+        Console.WriteLine(arrCustomer);
+        if (arrCustomer.Count == 0)
+        {
+            customer.Phonenumber = orderdata.Phonenumber;
+            customer.Count = 1;
+            CustomerServices.SaveCustomerDataInJson(customer);
+        }
+
+        foreach (var each in arrCustomer)
+        {
+            Console.WriteLine(each.Phonenumber);
+            if (each.Phonenumber != orderdata.Phonenumber)
+            {
+                customer.Phonenumber = orderdata.Phonenumber;
+                customer.Count = 1;
+                CustomerServices.SaveCustomerDataInJson(customer);
+            }
+            else
+            {
+                Console.WriteLine();
+                customer.Phonenumber = orderdata.Phonenumber;
+
+                customer.Count += 1;
+                CustomerServices.EditCustomer(customer.Phonenumber, customer.Count);
+
+            }
+        }
+        var orderModel = ReturnModel();
+        int count = 0;
+        List<Customer> customernew = CustomerServices.RetrieveCustomerData();
+
+        foreach (var cust in customernew)
+        {
+            if (cust.Phonenumber == phonenumber && cust.Count > 2)
+            {
+
+                discount_price = total_price * 100 / 100;
+                IsFree = true;
+
+                CustomerServices.EditCustomerCountZero(customer.Phonenumber, customer.Count);
+
+            }
+        }
+
+
+        try
+
+        {
+            // Call HobbyServices to edit the hobby with the specified Id and updated Name by calling method EditHobby from HobbyServices class in Services Folder
+            OrderServices.EditOrder(Id, orderdata.Username, orderdata.Phonenumber, finalPrice, discount_price);
+
+            // Display a success alert and navigate back to the Hobbies page
+            NavManager.NavigateTo("/ViewPaidOrder");
+
+        }
+        catch (Exception ex)
+        {
+            // Display an error alert if an exception occurs during editing
+            App.Current.MainPage.DisplayAlert("Error", $"Error Editing Addins:{ex.Message}", "Ok");
+        }
+    }
+
+}

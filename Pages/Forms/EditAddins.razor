@@ -1,0 +1,86 @@
+﻿@page "/EditAddins/{Id:guid}"
+<!-- Inject the NavigationManager Service for page navigation -->
+@inject NavigationManager NavManager
+
+<style>
+    .edit-addins-main {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 0;
+        background-color: #F8F4EC;
+        min-height: 100vh;
+    }
+
+    .edit-addins-form {
+        background: white;
+        width: 30%;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .py-4 {
+        padding-top: 20px;
+    }
+
+    .btn-primary {
+        background-color: #D63484;
+        color: #F8F4EC;
+    }
+</style>
+
+<div class="edit-addins-main">
+    <div class="edit-addins-form">
+        <EditForm Model="@addin" OnValidSubmit="@HandleSubmit">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="Name">Add-in Name:</label>
+                <InputText id="Name" class="form-control" @bind-Value="addin.Name" />
+            </div>
+
+            <div class="form-group">
+                <label for="Price">Add-in Price:</label>
+                <InputText id="Price" class="form-control" @bind-Value="addin.Price" />
+            </div>
+
+            <div class="py-4">
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    public Addins addin;
+
+    protected override void OnInitialized()
+    {
+        addin = AddinService.GetAddinsById(Id);
+        base.OnInitialized();
+    }
+
+    public void HandleSubmit()
+    {
+        try
+        {
+            AddinService.EditAddins(Id, addin.Price);
+            App.Current.MainPage.DisplayAlert("Success", "Data Successfully Edited", "Ok");
+            NavManager.NavigateTo("/ViewAddins");
+        }
+        catch (Exception ex)
+        {
+            App.Current.MainPage.DisplayAlert("Error", $"Error Editing Add-ins: {ex.Message}", "Ok");
+        }
+    }
+}

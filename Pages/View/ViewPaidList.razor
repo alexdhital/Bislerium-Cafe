@@ -1,0 +1,279 @@
+﻿@page "/ViewPaidOrder"
+@using static Bislerium_cafe.Data.Services.ReportGenrateTopSales
+
+<style>
+    /* Button Styles */
+    .button {
+        background-color: #6B8E23;
+        color: #ffffff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+
+        .button:hover {
+            background-color: #556B2F;
+        }
+
+    /* Table Styles */
+    .table-container {
+        margin-top: 20px;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+        .table th, .table td {
+            border: 1px solid #008000;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .table th {
+            background-color: #228B22;
+            color: #ffffff;
+        }
+
+        .table tr:hover {
+            background-color: #32CD32;
+        }
+</style>
+
+<div class="flex-row gap-3">
+    <button class="button" onclick="@DownloadPdf">Download Data</button>
+    <button class="button" onclick="@DownloadTop5Sales">Download Top 5 sales of months</button>
+</div>
+
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Coffee Name</th>
+                <th>Customer Phonenumber</th>
+                <th>Customer Username</th>
+                <th>Total Price</th>
+                <th>Discount</th>
+                <th>Final Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Loop through each order data -->
+            @foreach (var orderData in OrderServices.RetrieveOrderData())
+            {
+                <tr>
+                    @if (orderData.IsPaid == true)
+                    {
+                        <td>@orderData.Coffee.Name</td>
+                        <td>@orderData.Phonenumber</td>
+                        <td>@orderData.Username</td>
+                        <td>@orderData.TotalPrice</td>
+                        <td>@orderData.Discount</td>
+                        <td>@orderData.FinalPrice</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+
+    public void CalcDiscount()
+    {
+
+    }
+    // Inject NavigationManager for navigation purposes
+    [Inject]
+    private NavigationManager NManager { get; set; }
+
+    // Initialize the page on start
+
+    public async Task DownloadTop5Sales()
+    {
+        try
+        {
+            var pdf = new ChromePdfRenderer();
+
+            // ReportGenrateTopSales.FindTopFiveSales();
+            DateTime selectedDate = DateTime.Now;
+            DateTime time = new DateTime(selectedDate.Year, selectedDate.Month, selectedDate.Day);
+            List<SalesModel> dailyReport = ReportGenrateTopSales.GenerateReport(true, selectedDate);
+
+            var coffeeMostSoldHtml = "<style>" +
+                                    "   body {" +
+                                    "       font-family: 'Arial', sans-serif;" +
+                                    "   }" +
+                                    "   table {" +
+                                    "       width: 100%;" +
+                                    "       border-collapse: collapse;" +
+                                    "       margin-bottom: 20px;" +
+                                    "   }" +
+                                    "   th, td {" +
+                                    "       border: 1px solid #ddd;" +
+                                    "       padding: 12px;" +
+                                    "       text-align: left;" +
+                                    "   }" +
+                                    "   th {" +
+                                    "       background-color: #f2f2f2;" +
+                                    "   }" +
+                                    "   tr:hover {" +
+                                    "       background-color: #f5f5f5;" +
+                                    "   }" +
+                                    "   .total-price {" +
+                                    "       margin-top: 20px;" +
+                                    "       font-weight: bold;" +
+                                    "       font-size: 18px;" +
+                                    "   }" +
+                                    "</style>" +
+                                    "<table><thead><tr><th>Coffee Name</th><th>Total Quantity Sold</th><th>Total Price</th></tr></thead><tbody>";
+
+            var addinsMostSoldHtml = "<table><thead><tr><th>Addins Name</th><th>Total Quantity Sold</th><th>Total Price</th></tr></thead><tbody>";
+
+            Coffee model;
+            Addins modelAddins;
+            int price;
+            int totalPriceCoffee = 0;
+            int totalPriceAddins = 0;
+
+            foreach (var items in dailyReport)
+            {
+                if (items.ItemType == "Coffee")
+                {
+                    model = CoffeeService.GetcoffeeByName((items.Name).ToString());
+                    price = int.Parse(model.Price) * items.QuantitySold;
+
+                    coffeeMostSoldHtml += "<tr>";
+                    coffeeMostSoldHtml += $"<td>{items.Name}</td><td>{items.QuantitySold}</td><td>{price}</td></td>";
+                    coffeeMostSoldHtml += "<td>";
+                    totalPriceCoffee += price;
+                }
+
+                if (items.ItemType == "Addins")
+                {
+                    modelAddins = AddinService.GetAddinsByName((items.Name).ToString());
+                    price = int.Parse(modelAddins.Price) * items.QuantitySold;
+
+                    addinsMostSoldHtml += "<tr>";
+                    addinsMostSoldHtml += $"<td>{items.Name}</td><td>{items.QuantitySold}</td><td>{price}</td></td>";
+                    addinsMostSoldHtml += "<td>";
+                    totalPriceAddins += price;
+                }
+            }
+
+            coffeeMostSoldHtml += "</td></tr>";
+            coffeeMostSoldHtml += "</tbody></table>";
+
+            coffeeMostSoldHtml += $"<br><br><div class='total-price'>Total Price: {totalPriceCoffee}</div><br><br><br>";
+
+            addinsMostSoldHtml += "</td></tr>";
+            addinsMostSoldHtml += "</tbody></table>";
+
+            addinsMostSoldHtml += $"<div class='total-price'>Total Price: {totalPriceAddins}</div>";
+
+            using (var pdfStream = pdf.RenderHtmlAsPdf(coffeeMostSoldHtml + addinsMostSoldHtml).Stream)
+            {
+                // Save the PDF Inside the folder
+                string pdfPath = FormUtils.ApplicationDirectoryPath();
+
+                using (var fileStream = new System.IO.FileStream(Path.Combine(pdfPath, "TransactionData.pdf"), System.IO.FileMode.Create))
+                {
+                    await pdfStream.CopyToAsync(fileStream);
+                }
+            }
+
+            // Show notification
+            await App.Current.MainPage.DisplayAlert("Success", "File Downloaded Successfully", "Ok");
+        }
+        catch
+        {
+            // Handle exception
+        }
+    }
+
+
+
+    public async Task DownloadPdf()
+    {
+        try
+        {
+            var orderDataList = OrderServices.RetrieveOrderData();
+
+            if (orderDataList != null && orderDataList.Any())
+            {
+                // Create a PDF document
+                var pdf = new ChromePdfRenderer();
+
+                // Define CSS styles
+                var cssStyles = "<style>"
+       + "table { width: 100%; border-collapse: collapse; }"
+       + "th { background-color: #176B87; color: white; padding: 8px; }"    
+       + "tr:nth-child(even) { background-color: #86B6F6; }"
+       + "tr:hover { background-color: #B4D4FF; }"
+       + "td { border: 1px solid #EEF5FF; padding: 8px; }"
+       + "span { color: #176B87; }"
+       + "ul { list-style-type: none; padding: 0; margin: 0; }"
+       + "li { padding: 2px; color: #176B87; }"
+       + "</style>";
+
+                // HTML table for PDF
+                var tableHtml = $"{cssStyles}<table><thead><tr><th>Coffee Name</th><th>User Name</th><th>Phonenumber</th><th>Paid Status</th><th>Total Price</th><th>Addins</th></tr></thead><tbody>";
+
+                // Add data to the table
+                // Loop through form data to add to the PDF table
+                foreach (var formData in orderDataList)
+                {
+                    tableHtml += "<tr>";
+                    tableHtml += $"<td>{formData.Coffee.Name}</td><td>{formData.Username}</td><td>{formData.Phonenumber}</td><td>{formData.IsPaid}</td><td>{formData.TotalPrice}</td>";
+                    tableHtml += "<td>";
+
+                    // Check if hobbies exist for the current form data
+                    if (formData.Addins != null && formData.Addins.Any())
+                    {
+                        tableHtml += "<ul>";
+                        // Loop through hobbies and add to the PDF table
+                        foreach (var addin in formData.Addins)
+                        {
+                            tableHtml += $"<li>{addin.Name}</li>";
+                        }
+                        tableHtml += "</ul>";
+                    }
+                    else
+                    {
+                        // Display a message if no hobbies
+                        tableHtml += "<span>No Orrder</span>";
+                    }
+
+                    tableHtml += "</td></tr>";
+                }
+
+                tableHtml += "</tbody></table>";
+
+                // Convert HTML to Pdf
+                using (var pdfStream = pdf.RenderHtmlAsPdf(tableHtml).Stream)
+                {
+                    // Save the PDF Inside the folder
+                    string pdfPath = FormUtils.ApplicationDirectoryPath();
+
+                    using (var fileStream = new System.IO.FileStream(Path.Combine(pdfPath, "TransactionData.pdf"), System.IO.FileMode.Create))
+                    {
+                        await pdfStream.CopyToAsync(fileStream);
+                    }
+                }
+
+                // Show notification
+                await App.Current.MainPage.DisplayAlert("Success", "File Downloaded Successfully", "Ok");
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log or handle the exception appropriately
+            Console.WriteLine(ex);
+        }
+    }
+
+}
